@@ -1,1 +1,100 @@
+
 @import "tailwindcss";
+
+:root {
+  --bg: #11120f;
+  --panel: #1c1d18;
+  --panel2: #25261f;
+  --gold: #d5b36b;
+  --gold2: #f0d99e;
+  --muted: #b8b3a5;
+  --line: #3a392f;
+  --green: #78bd83;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #29271d 0, #11120f 48%);
+  color: #f6f0e2;
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+.font-ancestral {
+  font-family: Georgia, serif;
+}
+
+.ancestral-card {
+  background: linear-gradient(145deg, #22231d, #191a15);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+}
+
+.ancestral-hero {
+  background: linear-gradient(135deg, #27251c, #171812);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.ancestral-input {
+  width: 100%;
+  background: #11130f;
+  border: 1px solid #514b39;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+}
+
+.ancestral-input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.btn-gold {
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 15px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--gold);
+  color: #201b10;
+  transition: filter 0.15s;
+}
+
+.btn-gold:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn-gold:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  border-radius: 9px;
+  padding: 11px 15px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--panel2);
+  color: #f4e8c9;
+  border: 1px solid var(--line);
+  transition: border-color 0.15s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+
+.ancestral-notice {
+  background: #282419;
+  border: 1px solid #665637;
+  color: #e8d6ad;
+  border-radius: 9px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
