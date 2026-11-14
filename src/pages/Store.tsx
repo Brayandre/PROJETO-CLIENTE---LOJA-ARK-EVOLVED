@@ -13,6 +13,7 @@ import {
   X,
   CheckCircle2,
   MapPin,
+  MessageCircle,
 } from 'lucide-react';
 
 interface CartItem {
@@ -20,10 +21,12 @@ interface CartItem {
   quantity: number;
 }
 
+const STORE_WHATSAPP = '5512981862927';
+
 const CATEGORIES = ['Todos', 'Dinos', 'Blueprints', 'Recursos', 'Estruturas'];
 
 export function Store() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -36,6 +39,7 @@ export function Store() {
   const [deliveryInfo, setDeliveryInfo] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [lastWhatsappUrl, setLastWhatsappUrl] = useState('');
 
   useEffect(() => {
     fetchActiveProducts();
@@ -103,16 +107,40 @@ export function Store() {
 
       if (error) throw error;
 
+      // Monta a mensagem formatada para o WhatsApp
+      const itemsList = cart
+        .map(
+          (i) =>
+            `• ${i.quantity}x ${i.product.name} — ${(
+              i.product.price * i.quantity
+            ).toLocaleString('pt-BR')} ${i.product.currency}`
+        )
+        .join('\n');
+
+      const survivor = profile?.survivor_name || user.email || 'Sobrevivente';
+      const tribe = profile?.tribe_name || 'Sem tribo';
+      const discord = profile?.discord || 'Não informado';
+
+      const fullMessage =
+        `🦖 *LOJA ANCESTRAIS — NOVO PEDIDO*\n\n` +
+        `*Itens:*\n${itemsList}\n\n` +
+        `*DADOS PARA ENTREGA*\n` +
+        `👤 Personagem: ${survivor}\n` +
+        `🏰 Tribo: ${tribe}\n` +
+        `💬 Discord: ${discord}\n` +
+        `📍 TP / Local: ${deliveryInfo}\n\n` +
+        `Aguardo confirmação para entrega!`;
+
+      const waUrl = `https://wa.me/${STORE_WHATSAPP}?text=${encodeURIComponent(fullMessage)}`;
+      setLastWhatsappUrl(waUrl);
+
       setCart([]);
       setDeliveryInfo('');
       setOrderSuccess(true);
       fetchActiveProducts();
 
-      setTimeout(() => {
-        setOrderSuccess(false);
-        setIsCartOpen(false);
-        navigate('/orders');
-      }, 1500);
+      // Abre o WhatsApp automaticamente igual ao HTML original
+      window.open(waUrl, '_blank');
     } catch (err: any) {
       alert(err.message || 'Erro ao fechar pedido.');
     } finally {
@@ -133,7 +161,6 @@ export function Store() {
 
   return (
     <main className="max-w-[1100px] mx-auto p-[18px] pb-24">
-      {/* Banner Hero no padrão Loja Ancestrais */}
       <div className="ancestral-hero py-[26px] px-[18px] text-center mb-6">
         <h1 className="font-ancestral text-[#f0d99e] text-[clamp(24px,5vw,38px)] font-bold m-0 mb-2">
           Escolha sua próxima criatura
@@ -143,7 +170,6 @@ export function Store() {
         </p>
       </div>
 
-      {/* Busca e Filtros de Categoria */}
       <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center mb-6">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-[#b8b3a5] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -177,7 +203,6 @@ export function Store() {
         Catálogo de criaturas & itens
       </h2>
 
-      {/* Grid de Produtos */}
       {loading ? (
         <div className="text-center py-16 text-[#b8b3a5]">Carregando catálogo...</div>
       ) : filteredProducts.length === 0 ? (
@@ -250,7 +275,6 @@ export function Store() {
         </div>
       )}
 
-      {/* Botão Flutuante do Pedido */}
       {totalItemsInCart > 0 && (
         <button
           onClick={() => setIsCartOpen(true)}
@@ -261,7 +285,6 @@ export function Store() {
         </button>
       )}
 
-      {/* Drawer Lateral de Finalizar Pedido */}
       {isCartOpen && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex justify-end">
           <div className="bg-[#1c1d18] border-l border-[#3a392f] w-full max-w-md h-full flex flex-col justify-between p-5">
@@ -271,7 +294,10 @@ export function Store() {
                 Finalizar pedido
               </h2>
               <button
-                onClick={() => setIsCartOpen(false)}
+                onClick={() => {
+                  setIsCartOpen(false);
+                  setOrderSuccess(false);
+                }}
                 className="text-[#b8b3a5] hover:text-white p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -279,14 +305,35 @@ export function Store() {
             </div>
 
             {orderSuccess ? (
-              <div className="my-auto text-center space-y-3 p-6">
+              <div className="my-auto text-center space-y-4 p-4">
                 <CheckCircle2 className="w-14 h-14 text-[#78bd83] mx-auto" />
                 <h3 className="font-ancestral text-2xl font-bold text-[#f0d99e]">
                   Pedido Registrado!
                 </h3>
                 <p className="text-sm text-[#b8b3a5]">
-                  O estoque foi reservado para você. Redirecionando para seus pedidos...
+                  Seu pedido foi salvo no sistema e o WhatsApp foi aberto para você enviar a confirmação. Caso a janela não tenha aberto sozinha, toque no botão abaixo:
                 </p>
+
+                <a
+                  href={lastWhatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-gold w-full flex items-center justify-center gap-2 no-underline"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Abrir WhatsApp e Enviar Pedido
+                </a>
+
+                <button
+                  onClick={() => {
+                    setOrderSuccess(false);
+                    setIsCartOpen(false);
+                    navigate('/orders');
+                  }}
+                  className="btn-secondary w-full text-sm"
+                >
+                  Ver em Meus Pedidos
+                </button>
               </div>
             ) : (
               <>
@@ -350,7 +397,7 @@ export function Store() {
                   </div>
 
                   <div className="ancestral-notice">
-                    A loja confirmará o seu pedido e combinará a entrega dentro do servidor usando seu Discord e dados de sobrevivente cadastrados.
+                    O pagamento é feito in-game. Ao confirmar, o estoque será reservado e o WhatsApp abrirá com o resumo do pedido.
                   </div>
 
                   <button
@@ -361,7 +408,7 @@ export function Store() {
                     {submitting
                       ? 'Reservando Estoque...'
                       : user
-                      ? 'Confirmar Encomenda'
+                      ? 'Enviar pedido pelo WhatsApp'
                       : 'Fazer Login para Encomendar'}
                   </button>
                 </form>
